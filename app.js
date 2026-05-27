@@ -12,6 +12,9 @@ const SCROLL_SPEED = 0.75;
 const HOVER_SPEED = 0;
 const EASING = 0.08;
 
+const MANUAL_SCROLL_DURATION = 1050;
+const MANUAL_SCROLL_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -102,13 +105,15 @@ function moveToPosition(track, nextX) {
   scrollX = nextX;
   normalizeScrollX(track);
 
-  track.style.transition = 'transform 0.7s cubic-bezier(0.22, 1, 0.36, 1)';
+  track.style.transition =
+    `transform ${MANUAL_SCROLL_DURATION}ms ${MANUAL_SCROLL_EASING}`;
+
   track.style.transform = `translateX(${-scrollX}px)`;
 
   window.setTimeout(() => {
     track.style.transition = '';
     isManualScrolling = false;
-  }, 720);
+  }, MANUAL_SCROLL_DURATION + 30);
 }
 
 function render() {
@@ -149,7 +154,7 @@ function render() {
                   </div>
 
                   <div class="cardFooter">
-                    <span>Read more</span>
+                    <span class="readMoreText">Read more</span>
                     <span class="arrow">→</span>
                   </div>
                 </a>

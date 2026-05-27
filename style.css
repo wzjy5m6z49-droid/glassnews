@@ -489,21 +489,18 @@ body {
   z-index: 2;
 
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 6px;
 
-  color:
-    rgba(0,0,0,.46);
-
+  color: rgba(0,0,0,.46);
   font-size: 12px;
 }
 
 .arrow {
   font-size: 18px;
   transform: translateX(0);
-
-  transition:
-    transform .28s ease;
+  transition: transform .28s ease;
 }
 
 .glassCard:hover .arrow {

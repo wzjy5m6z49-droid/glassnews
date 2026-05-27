@@ -5,7 +5,12 @@ let scrollX = 0;
 let isManualScrolling = false;
 let animationId = null;
 
+let currentSpeed = 0.75;
+let targetSpeed = 0.75;
+
 const SCROLL_SPEED = 0.75;
+const HOVER_SPEED = 0;
+const EASING = 0.08;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -161,6 +166,14 @@ function render() {
   const prev = document.querySelector('.navPrev');
   const next = document.querySelector('.navNext');
 
+  viewport.addEventListener('mouseenter', () => {
+    targetSpeed = HOVER_SPEED;
+  });
+
+  viewport.addEventListener('mouseleave', () => {
+    targetSpeed = SCROLL_SPEED;
+  });
+
   next.addEventListener('click', () => {
     moveToPosition(track, snapRight(track, viewport));
   });
@@ -176,8 +189,10 @@ function startMarquee(track) {
   if (!track) return;
 
   const animate = () => {
+    currentSpeed += (targetSpeed - currentSpeed) * EASING;
+
     if (!isManualScrolling) {
-      scrollX += SCROLL_SPEED;
+      scrollX += currentSpeed;
       normalizeScrollX(track);
       track.style.transform = `translateX(${-scrollX}px)`;
     }

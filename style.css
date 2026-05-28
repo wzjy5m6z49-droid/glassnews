@@ -155,10 +155,10 @@ body {
     inset 0 1px 0 rgba(255,255,255,.82);
 
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(22px) scale(.985);
 
   animation:
-    cardIn .75s cubic-bezier(.22,1,.36,1) forwards;
+    cardIntro .9s cubic-bezier(.16,1,.3,1) forwards;
 
   transition:
     transform .35s cubic-bezier(.22,1,.36,1),
@@ -192,7 +192,17 @@ body {
     background .35s ease;
 }
 
-/* 通常アイテム hover：内部まで黄色 */
+/* 初回反射スイープ */
+.introTrack .edgeLight {
+  opacity: 1;
+}
+
+.introTrack .edgeLight::before {
+  animation:
+    introSweep 1.05s cubic-bezier(.16,1,.3,1) both;
+  animation-delay: inherit;
+}
+
 .glassCard:hover {
   transform:
     translateY(-7px)
@@ -386,6 +396,20 @@ body {
   }
 }
 
+@keyframes introSweep {
+  from {
+    transform:
+      rotate(18deg)
+      translateX(-150%);
+  }
+
+  to {
+    transform:
+      rotate(18deg)
+      translateX(460%);
+  }
+}
+
 .tagRow,
 .cardTitle,
 .cardFooter {
@@ -508,12 +532,21 @@ body {
     translateX(5px);
 }
 
-@keyframes cardIn {
+@keyframes cardIntro {
+  from {
+    opacity: 0;
+    transform:
+      translateY(22px)
+      scale(.985);
+    filter: blur(3px);
+  }
+
   to {
     opacity: 1;
-
     transform:
-      translateY(0);
+      translateY(0)
+      scale(1);
+    filter: blur(0);
   }
 }
 

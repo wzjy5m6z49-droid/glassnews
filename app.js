@@ -4,13 +4,16 @@ const items = window.newsV2Data || [];
 let scrollX = 0;
 let isManualScrolling = false;
 let animationId = null;
+let isIntroDone = false;
 
-let currentSpeed = 0.75;
-let targetSpeed = 0.75;
+let currentSpeed = 0;
+let targetSpeed = 0;
 
 const SCROLL_SPEED = 0.75;
 const HOVER_SPEED = 0;
 const EASING = 0.08;
+
+const INTRO_WAIT = 1400;
 
 const MANUAL_SCROLL_DURATION = 1050;
 const MANUAL_SCROLL_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
@@ -126,7 +129,7 @@ function render() {
         <button class="navButton navNext" type="button" aria-label="次へ">›</button>
 
         <div class="marqueeViewport">
-          <div class="marqueeTrack" id="marqueeTrack">
+          <div class="marqueeTrack introTrack" id="marqueeTrack">
             ${duplicatedItems.map((item, index) => {
               const important = item.important === true;
               const date = item.publicationDate || item.created;
@@ -138,7 +141,7 @@ function render() {
                   href="${escapeHtml(item.sourceUrl || '#')}"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style="animation-delay:${index * 0.04}s"
+                  style="animation-delay:${index * 0.05}s"
                 >
                   <div class="edgeLight"></div>
 
@@ -172,11 +175,11 @@ function render() {
   const next = document.querySelector('.navNext');
 
   viewport.addEventListener('mouseenter', () => {
-    targetSpeed = HOVER_SPEED;
+    if (isIntroDone) targetSpeed = HOVER_SPEED;
   });
 
   viewport.addEventListener('mouseleave', () => {
-    targetSpeed = SCROLL_SPEED;
+    if (isIntroDone) targetSpeed = SCROLL_SPEED;
   });
 
   next.addEventListener('click', () => {
@@ -188,6 +191,13 @@ function render() {
   });
 
   startMarquee(track);
+
+  window.setTimeout(() => {
+    isIntroDone = true;
+    targetSpeed = SCROLL_SPEED;
+    track.classList.remove('introTrack');
+    track.classList.add('scrollStarted');
+  }, INTRO_WAIT);
 }
 
 function startMarquee(track) {

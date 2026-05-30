@@ -16,8 +16,8 @@ const SPEED_EASING = 0.08;
 
 const INTRO_WAIT = 1400;
 
-const MANUAL_EASING = 0.095;
-const MANUAL_STOP_DISTANCE = 0.35;
+const MANUAL_EASING = 0.18;
+const MANUAL_STOP_DISTANCE = 1;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -49,7 +49,7 @@ function isNew(value) {
 }
 
 function getHalfWidth(track) {
-  return track.scrollWidth / 2;
+  return track.scrollWidth / 3;
 }
 
 function normalizeScrollX(track) {
@@ -107,18 +107,8 @@ function snapRight(track, viewport) {
   }
 
   if (!target) {
-    scrollX -= halfWidth;
-    instantMove(track);
-    cards = getCardInfo(viewport);
-
-    target = cards.find((x) => {
-      return x.rect.right > viewportRect.right && x.rect.left < viewportRect.right;
-    }) || cards.find((x) => {
-      return x.rect.left >= viewportRect.right;
-    });
+    return scrollX - halfWidth;
   }
-
-  if (!target) return null;
 
   return scrollX + (target.rect.left - viewportRect.left);
 }
@@ -140,18 +130,8 @@ function snapLeft(track, viewport) {
   }
 
   if (!target) {
-    scrollX += halfWidth;
-    instantMove(track);
-    cards = getCardInfo(viewport);
-
-    target = [...cards].reverse().find((x) => {
-      return x.rect.left < viewportRect.left && x.rect.right > viewportRect.left;
-    }) || [...cards].reverse().find((x) => {
-      return x.rect.right <= viewportRect.left;
-    });
+    return scrollX + halfWidth;
   }
-
-  if (!target) return null;
 
   return scrollX - (viewportRect.right - target.rect.right);
 }
@@ -164,7 +144,11 @@ function moveToPosition(nextX) {
 }
 
 function render() {
-  const duplicatedItems = [...items, ...items];
+  const duplicatedItems = [
+  ...items,
+  ...items,
+  ...items
+];
 
   app.innerHTML = `
     <div class="glassPage">
@@ -230,6 +214,11 @@ function render() {
   prev.addEventListener('click', () => {
     moveToPosition(snapLeft(track, viewport));
   });
+
+requestAnimationFrame(() => {
+  scrollX = getHalfWidth(track);
+  applyTransform(track);
+});
 
   startMarquee(track);
 

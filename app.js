@@ -186,9 +186,11 @@ function render() {
                   target="_top"
                   style="animation-delay:${index * 0.05}s"
                 >
-                  <div class="statusRow">
-                    ${important ? '<span class="statusText importantText">重要</span>' : ''}
-                    ${newItem ? '<span class="statusText newText">NEW</span>' : ''}
+                  <div class="tagRow">
+                    <span class="tag deptTag">${escapeHtml(item.department || '未設定')}</span>
+                    ${important ? '<span class="tag importantTag">重要</span>' : ''}
+                    ${newItem ? '<span class="tag newTag">NEW</span>' : ''}
+                    <span class="tag dateTag">${formatDate(date)}</span>
                   </div>
 
                   <div class="cardTitle">

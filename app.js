@@ -15,8 +15,8 @@ const EASING = 0.08;
 
 const INTRO_WAIT = 1400;
 
-const MANUAL_SCROLL_DURATION = 1050;
-const MANUAL_SCROLL_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
+const MANUAL_SCROLL_DURATION = 820;
+const MANUAL_SCROLL_EASING = 'cubic-bezier(0.19, 1, 0.22, 1)';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -59,28 +59,63 @@ function normalizeScrollX(track) {
   while (scrollX >= halfWidth) scrollX -= halfWidth;
 }
 
-function getVisibleCards(viewport) {
+function applyTransform(track) {
+  track.style.transform = `translateX(${-scrollX}px)`;
+}
+
+function instantMove(track) {
+  track.style.transition = 'none';
+  applyTransform(track);
+  track.offsetHeight;
+  track.style.transition = '';
+}
+
+function getCardInfo(viewport) {
   const viewportRect = viewport.getBoundingClientRect();
 
-  return Array.from(viewport.querySelectorAll('.glassCard'))
-    .map((card) => {
-      const rect = card.getBoundingClientRect();
-      const visibleLeft = Math.max(rect.left, viewportRect.left);
-      const visibleRight = Math.min(rect.right, viewportRect.right);
-      const visibleWidth = Math.max(0, visibleRight - visibleLeft);
+  return Array.from(viewport.querySelectorAll('.glassCard')).map((card) => {
+    const rect = card.getBoundingClientRect();
 
-      return { card, rect, visibleWidth };
-    })
-    .filter((x) => x.visibleWidth > 0);
+    const visibleLeft = Math.max(rect.left, viewportRect.left);
+    const visibleRight = Math.min(rect.right, viewportRect.right);
+    const visibleWidth = Math.max(0, visibleRight - visibleLeft);
+
+    return {
+      card,
+      rect,
+      visibleWidth,
+      viewportRect
+    };
+  });
 }
 
 function snapRight(track, viewport) {
+  const halfWidth = getHalfWidth(track);
   const viewportRect = viewport.getBoundingClientRect();
-  const visibleCards = getVisibleCards(viewport);
 
-  const target = visibleCards.find((x) => {
+  let cards = getCardInfo(viewport);
+
+  let target = cards.find((x) => {
     return x.rect.right > viewportRect.right && x.rect.left < viewportRect.right;
   });
+
+  if (!target) {
+    target = cards.find((x) => {
+      return x.rect.left >= viewportRect.right;
+    });
+  }
+
+  if (!target) {
+    scrollX -= halfWidth;
+    instantMove(track);
+    cards = getCardInfo(viewport);
+
+    target = cards.find((x) => {
+      return x.rect.right > viewportRect.right && x.rect.left < viewportRect.right;
+    }) || cards.find((x) => {
+      return x.rect.left >= viewportRect.right;
+    });
+  }
 
   if (!target) return null;
 
@@ -88,12 +123,32 @@ function snapRight(track, viewport) {
 }
 
 function snapLeft(track, viewport) {
+  const halfWidth = getHalfWidth(track);
   const viewportRect = viewport.getBoundingClientRect();
-  const visibleCards = getVisibleCards(viewport);
 
-  const target = [...visibleCards].reverse().find((x) => {
+  let cards = getCardInfo(viewport);
+
+  let target = [...cards].reverse().find((x) => {
     return x.rect.left < viewportRect.left && x.rect.right > viewportRect.left;
   });
+
+  if (!target) {
+    target = [...cards].reverse().find((x) => {
+      return x.rect.right <= viewportRect.left;
+    });
+  }
+
+  if (!target) {
+    scrollX += halfWidth;
+    instantMove(track);
+    cards = getCardInfo(viewport);
+
+    target = [...cards].reverse().find((x) => {
+      return x.rect.left < viewportRect.left && x.rect.right > viewportRect.left;
+    }) || [...cards].reverse().find((x) => {
+      return x.rect.right <= viewportRect.left;
+    });
+  }
 
   if (!target) return null;
 
@@ -106,15 +161,20 @@ function moveToPosition(track, nextX) {
   isManualScrolling = true;
 
   scrollX = nextX;
-  normalizeScrollX(track);
 
+  track.style.willChange = 'transform';
   track.style.transition =
     `transform ${MANUAL_SCROLL_DURATION}ms ${MANUAL_SCROLL_EASING}`;
 
-  track.style.transform = `translateX(${-scrollX}px)`;
+  applyTransform(track);
 
   window.setTimeout(() => {
     track.style.transition = '';
+
+    normalizeScrollX(track);
+    instantMove(track);
+
+    track.style.willChange = '';
     isManualScrolling = false;
   }, MANUAL_SCROLL_DURATION + 30);
 }
@@ -139,16 +199,15 @@ function render() {
                 <a
                   class="glassCard ${important ? 'importantCard' : ''}"
                   href="${escapeHtml(item.sourceUrl || '#')}"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_top"
                   style="animation-delay:${index * 0.05}s"
                 >
                   <div class="edgeLight"></div>
 
                   <div class="tagRow">
+                    <span class="tag deptTag">${escapeHtml(item.department || '未設定')}</span>
                     ${important ? '<span class="tag importantTag">重要</span>' : ''}
                     ${newItem ? '<span class="tag newTag">NEW</span>' : ''}
-                    <span class="tag deptTag">${escapeHtml(item.department || '未設定')}</span>
                     <span class="tag dateTag">${formatDate(date)}</span>
                   </div>
 
@@ -209,7 +268,7 @@ function startMarquee(track) {
     if (!isManualScrolling) {
       scrollX += currentSpeed;
       normalizeScrollX(track);
-      track.style.transform = `translateX(${-scrollX}px)`;
+      applyTransform(track);
     }
 
     animationId = requestAnimationFrame(animate);

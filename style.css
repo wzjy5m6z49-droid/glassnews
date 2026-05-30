@@ -249,29 +249,44 @@ body {
   }
 }
 
-.statusRow,
+.tagRow,
 .cardTitle,
 .cardFooter {
   position: relative;
   z-index: 2;
 }
 
-.statusRow {
+.tagRow {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   min-height: 18px;
   margin-bottom: 8px;
 }
 
-.statusText {
+.tag {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .08em;
+  font-weight: 700;
   line-height: 1;
 }
 
-.importantText {
+.deptTag {
+  color: #4f4f4f;
+}
+
+.dateTag {
+  margin-left: auto;
+  color: #0078d4;
+  font-weight: 650;
+}
+
+.importantTag {
   color: #d13438;
   text-shadow:
     0 0 8px rgba(209,52,56,.35),
@@ -279,7 +294,7 @@ body {
   animation: importantBlink 1.7s ease-in-out infinite;
 }
 
-.newText {
+.newTag {
   color: #d18b00;
   text-shadow:
     0 0 8px rgba(255,210,90,.45),

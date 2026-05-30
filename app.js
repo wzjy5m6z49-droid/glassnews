@@ -2,21 +2,23 @@ const app = document.getElementById('app');
 const items = window.newsV2Data || [];
 
 let scrollX = 0;
-let isManualScrolling = false;
 let animationId = null;
 let isIntroDone = false;
 
 let currentSpeed = 0;
 let targetSpeed = 0;
 
+let manualTargetX = null;
+
 const SCROLL_SPEED = 0.75;
 const HOVER_SPEED = 0;
-const EASING = 0.08;
+const SPEED_EASING = 0.08;
 
 const INTRO_WAIT = 1400;
 
-const MANUAL_SCROLL_DURATION = 820;
-const MANUAL_SCROLL_EASING = 'cubic-bezier(0.19, 1, 0.22, 1)';
+/* 矢印押下時のニュルン感 */
+const MANUAL_EASING = 0.095;
+const MANUAL_STOP_DISTANCE = 0.35;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -155,28 +157,11 @@ function snapLeft(track, viewport) {
   return scrollX - (viewportRect.right - target.rect.right);
 }
 
-function moveToPosition(track, nextX) {
-  if (!track || isManualScrolling || nextX === null || nextX === undefined) return;
+function moveToPosition(nextX) {
+  if (nextX === null || nextX === undefined) return;
 
-  isManualScrolling = true;
-
-  scrollX = nextX;
-
-  track.style.willChange = 'transform';
-  track.style.transition =
-    `transform ${MANUAL_SCROLL_DURATION}ms ${MANUAL_SCROLL_EASING}`;
-
-  applyTransform(track);
-
-  window.setTimeout(() => {
-    track.style.transition = '';
-
-    normalizeScrollX(track);
-    instantMove(track);
-
-    track.style.willChange = '';
-    isManualScrolling = false;
-  }, MANUAL_SCROLL_DURATION + 30);
+  manualTargetX = nextX;
+  targetSpeed = 0;
 }
 
 function render() {
@@ -234,19 +219,19 @@ function render() {
   const next = document.querySelector('.navNext');
 
   viewport.addEventListener('mouseenter', () => {
-    if (isIntroDone) targetSpeed = HOVER_SPEED;
+    if (isIntroDone && manualTargetX === null) targetSpeed = HOVER_SPEED;
   });
 
   viewport.addEventListener('mouseleave', () => {
-    if (isIntroDone) targetSpeed = SCROLL_SPEED;
+    if (isIntroDone && manualTargetX === null) targetSpeed = SCROLL_SPEED;
   });
 
   next.addEventListener('click', () => {
-    moveToPosition(track, snapRight(track, viewport));
+    moveToPosition(snapRight(track, viewport));
   });
 
   prev.addEventListener('click', () => {
-    moveToPosition(track, snapLeft(track, viewport));
+    moveToPosition(snapLeft(track, viewport));
   });
 
   startMarquee(track);
@@ -263,13 +248,30 @@ function startMarquee(track) {
   if (!track) return;
 
   const animate = () => {
-    currentSpeed += (targetSpeed - currentSpeed) * EASING;
+    currentSpeed += (targetSpeed - currentSpeed) * SPEED_EASING;
 
-    if (!isManualScrolling) {
+    if (manualTargetX !== null) {
+      const distance = manualTargetX - scrollX;
+
+      scrollX += distance * MANUAL_EASING;
+
+      if (Math.abs(distance) <= MANUAL_STOP_DISTANCE) {
+        scrollX = manualTargetX;
+        manualTargetX = null;
+
+        normalizeScrollX(track);
+        instantMove(track);
+
+        if (isIntroDone) {
+          targetSpeed = SCROLL_SPEED;
+        }
+      }
+    } else {
       scrollX += currentSpeed;
       normalizeScrollX(track);
-      applyTransform(track);
     }
+
+    applyTransform(track);
 
     animationId = requestAnimationFrame(animate);
   };

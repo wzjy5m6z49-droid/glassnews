@@ -16,7 +16,6 @@ const SPEED_EASING = 0.08;
 
 const INTRO_WAIT = 1400;
 
-/* 矢印押下時のニュルン感 */
 const MANUAL_EASING = 0.095;
 const MANUAL_STOP_DISTANCE = 0.35;
 
@@ -187,13 +186,9 @@ function render() {
                   target="_top"
                   style="animation-delay:${index * 0.05}s"
                 >
-                  <div class="edgeLight"></div>
-
-                  <div class="tagRow">
-                    <span class="tag deptTag">${escapeHtml(item.department || '未設定')}</span>
-                    ${important ? '<span class="tag importantTag">重要</span>' : ''}
-                    ${newItem ? '<span class="tag newTag">NEW</span>' : ''}
-                    <span class="tag dateTag">${formatDate(date)}</span>
+                  <div class="statusRow">
+                    ${important ? '<span class="statusText importantText">重要</span>' : ''}
+                    ${newItem ? '<span class="statusText newText">NEW</span>' : ''}
                   </div>
 
                   <div class="cardTitle">

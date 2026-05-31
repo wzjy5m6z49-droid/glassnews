@@ -19,6 +19,9 @@ const INTRO_WAIT = 1400;
 const MANUAL_EASING = 0.08;
 const MANUAL_STOP_DISTANCE = 0.5;
 
+const LOOP_COUNT = 5;
+const START_SECTION_INDEX = 2;
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -48,16 +51,26 @@ function isNew(value) {
   return diffDays(value) <= 3;
 }
 
-function getHalfWidth(track) {
-  return track.scrollWidth / 3;
+function getSectionWidth(track) {
+  return track.scrollWidth / LOOP_COUNT;
 }
 
 function normalizeScrollX(track) {
-  const halfWidth = getHalfWidth(track);
-  if (halfWidth <= 0) return;
+  const sectionWidth = getSectionWidth(track);
+  if (sectionWidth <= 0) return;
 
-  while (scrollX < 0) scrollX += halfWidth;
-  while (scrollX >= halfWidth) scrollX -= halfWidth;
+  const min = sectionWidth;
+  const max = sectionWidth * (LOOP_COUNT - 2);
+
+  while (scrollX < min) {
+    scrollX += sectionWidth;
+    if (manualTargetX !== null) manualTargetX += sectionWidth;
+  }
+
+  while (scrollX >= max) {
+    scrollX -= sectionWidth;
+    if (manualTargetX !== null) manualTargetX -= sectionWidth;
+  }
 }
 
 function applyTransform(track) {
@@ -71,69 +84,28 @@ function instantMove(track) {
   track.style.transition = '';
 }
 
-function getCardInfo(viewport) {
-  const viewportRect = viewport.getBoundingClientRect();
+function getCardStep(track) {
+  const cards = track.querySelectorAll('.glassCard');
+  if (!cards || cards.length < 2) return 360 + 16;
 
-  return Array.from(viewport.querySelectorAll('.glassCard')).map((card) => {
-    const rect = card.getBoundingClientRect();
+  const first = cards[0].getBoundingClientRect();
+  const second = cards[1].getBoundingClientRect();
 
-    const visibleLeft = Math.max(rect.left, viewportRect.left);
-    const visibleRight = Math.min(rect.right, viewportRect.right);
-    const visibleWidth = Math.max(0, visibleRight - visibleLeft);
+  const step = Math.abs(second.left - first.left);
 
-    return {
-      card,
-      rect,
-      visibleWidth,
-      viewportRect
-    };
-  });
+  if (!Number.isFinite(step) || step <= 0) {
+    return first.width + 16;
+  }
+
+  return step;
 }
 
-function snapRight(track, viewport) {
-  const halfWidth = getHalfWidth(track);
-  const viewportRect = viewport.getBoundingClientRect();
-
-  let cards = getCardInfo(viewport);
-
-  let target = cards.find((x) => {
-    return x.rect.right > viewportRect.right && x.rect.left < viewportRect.right;
-  });
-
-  if (!target) {
-    target = cards.find((x) => {
-      return x.rect.left >= viewportRect.right;
-    });
-  }
-
-  if (!target) {
-    return scrollX;
-  }
-
-  return scrollX + (target.rect.left - viewportRect.left);
+function snapRight(track) {
+  return scrollX + getCardStep(track);
 }
 
-function snapLeft(track, viewport) {
-  const halfWidth = getHalfWidth(track);
-  const viewportRect = viewport.getBoundingClientRect();
-
-  let cards = getCardInfo(viewport);
-
-  let target = [...cards].reverse().find((x) => {
-    return x.rect.left < viewportRect.left && x.rect.right > viewportRect.left;
-  });
-
-  if (!target) {
-    target = [...cards].reverse().find((x) => {
-      return x.rect.right <= viewportRect.left;
-    });
-  }
-
-  if (!target) {
-    return scrollX;
-  }
-
-  return scrollX - (viewportRect.right - target.rect.right);
+function snapLeft(track) {
+  return scrollX - getCardStep(track);
 }
 
 function moveToPosition(nextX) {
@@ -143,12 +115,18 @@ function moveToPosition(nextX) {
   targetSpeed = 0;
 }
 
+function buildLoopItems() {
+  const result = [];
+
+  for (let i = 0; i < LOOP_COUNT; i += 1) {
+    result.push(...items);
+  }
+
+  return result;
+}
+
 function render() {
-  const duplicatedItems = [
-  ...items,
-  ...items,
-  ...items
-];
+  const duplicatedItems = buildLoopItems();
 
   app.innerHTML = `
     <div class="glassPage">
@@ -200,25 +178,29 @@ function render() {
   const next = document.querySelector('.navNext');
 
   viewport.addEventListener('mouseenter', () => {
-    if (isIntroDone && manualTargetX === null) targetSpeed = HOVER_SPEED;
+    if (isIntroDone && manualTargetX === null) {
+      targetSpeed = HOVER_SPEED;
+    }
   });
 
   viewport.addEventListener('mouseleave', () => {
-    if (isIntroDone && manualTargetX === null) targetSpeed = SCROLL_SPEED;
+    if (isIntroDone && manualTargetX === null) {
+      targetSpeed = SCROLL_SPEED;
+    }
   });
 
   next.addEventListener('click', () => {
-    moveToPosition(snapRight(track, viewport));
+    moveToPosition(snapRight(track));
   });
 
   prev.addEventListener('click', () => {
-    moveToPosition(snapLeft(track, viewport));
+    moveToPosition(snapLeft(track));
   });
 
-requestAnimationFrame(() => {
-  scrollX = getHalfWidth(track);
-  applyTransform(track);
-});
+  requestAnimationFrame(() => {
+    scrollX = getSectionWidth(track) * START_SECTION_INDEX;
+    applyTransform(track);
+  });
 
   startMarquee(track);
 
@@ -262,7 +244,9 @@ function startMarquee(track) {
     animationId = requestAnimationFrame(animate);
   };
 
-  if (animationId) cancelAnimationFrame(animationId);
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+  }
 
   animate();
 }

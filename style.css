@@ -36,11 +36,12 @@ body {
 }
 
 .marqueeTrack {
- display: flex;
- gap: 16px;
- width: max-content;
- will-change: transform;
- transform: translateX(0);
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  will-change: transform;
+  transform: translate3d(0,0,0);
+  backface-visibility: hidden;
 }
 
 /* =========================
@@ -127,8 +128,8 @@ body {
  background: rgba(255,255,255,.16);
  border: 1px solid rgba(255,255,255,.34);
 
- backdrop-filter: blur(32px) saturate(1.45);
- -webkit-backdrop-filter: blur(32px) saturate(1.45);
+backdrop-filter: blur(18px) saturate(1.35);
+-webkit-backdrop-filter: blur(18px) saturate(1.35);
 
  box-shadow:
    0 12px 36px rgba(0,0,0,.08),
@@ -147,6 +148,9 @@ body {
    box-shadow .35s ease,
    backdrop-filter .35s ease,
    filter .35s ease;
+  transform: translateZ(0);
+backface-visibility: hidden;
+contain: layout paint;
 }
 
 .glassCard::before {
@@ -186,8 +190,8 @@ body {
 
  border-color: rgba(255,220,120,.92);
 
- backdrop-filter: blur(44px) saturate(1.75);
- -webkit-backdrop-filter: blur(44px) saturate(1.75);
+backdrop-filter: blur(24px) saturate(1.5);
+-webkit-backdrop-filter: blur(24px) saturate(1.5);
 
  box-shadow:
    0 0 22px rgba(255,210,70,.42),

@@ -107,7 +107,7 @@ function snapRight(track, viewport) {
   }
 
   if (!target) {
-    return scrollX - halfWidth;
+    return scrollX;
   }
 
   return scrollX + (target.rect.left - viewportRect.left);
@@ -130,7 +130,7 @@ function snapLeft(track, viewport) {
   }
 
   if (!target) {
-    return scrollX + halfWidth;
+    return scrollX;
   }
 
   return scrollX - (viewportRect.right - target.rect.right);

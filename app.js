@@ -16,8 +16,8 @@ const SPEED_EASING = 0.08;
 
 const INTRO_WAIT = 1400;
 
-const MANUAL_EASING = 0.18;
-const MANUAL_STOP_DISTANCE = 1;
+const MANUAL_EASING = 0.08;
+const MANUAL_STOP_DISTANCE = 0.5;
 
 function escapeHtml(value) {
   return String(value ?? '')

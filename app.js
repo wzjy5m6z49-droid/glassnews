@@ -19,8 +19,8 @@ const INTRO_WAIT = 1400;
 const MANUAL_EASING = 0.08;
 const MANUAL_STOP_DISTANCE = 0.5;
 
-const LOOP_COUNT = 5;
-const START_SECTION_INDEX = 2;
+const LOOP_COUNT = 3;
+const START_SECTION_INDEX = 1;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -55,24 +55,6 @@ function getSectionWidth(track) {
   return track.scrollWidth / LOOP_COUNT;
 }
 
-function normalizeScrollX(track) {
-  const sectionWidth = getSectionWidth(track);
-  if (sectionWidth <= 0) return;
-
-  const min = sectionWidth;
-  const max = sectionWidth * (LOOP_COUNT - 2);
-
-  while (scrollX < min) {
-    scrollX += sectionWidth;
-    if (manualTargetX !== null) manualTargetX += sectionWidth;
-  }
-
-  while (scrollX >= max) {
-    scrollX -= sectionWidth;
-    if (manualTargetX !== null) manualTargetX -= sectionWidth;
-  }
-}
-
 function applyTransform(track) {
   track.style.transform = `translateX(${-scrollX}px)`;
 }
@@ -84,28 +66,140 @@ function instantMove(track) {
   track.style.transition = '';
 }
 
-function getCardStep(track) {
-  const cards = track.querySelectorAll('.glassCard');
-  if (!cards || cards.length < 2) return 360 + 16;
+function normalizeScrollX(track) {
+  const sectionWidth = getSectionWidth(track);
+  if (sectionWidth <= 0) return;
 
-  const first = cards[0].getBoundingClientRect();
-  const second = cards[1].getBoundingClientRect();
-
-  const step = Math.abs(second.left - first.left);
-
-  if (!Number.isFinite(step) || step <= 0) {
-    return first.width + 16;
+  while (scrollX < 0) {
+    scrollX += sectionWidth;
+    if (manualTargetX !== null) {
+      manualTargetX += sectionWidth;
+    }
   }
 
-  return step;
+  while (scrollX >= sectionWidth * 2) {
+    scrollX -= sectionWidth;
+    if (manualTargetX !== null) {
+      manualTargetX -= sectionWidth;
+    }
+  }
 }
 
-function snapRight(track) {
-  return scrollX + getCardStep(track);
+function normalizeBeforeSnap(track) {
+  const sectionWidth = getSectionWidth(track);
+  if (sectionWidth <= 0) return;
+
+  if (scrollX < sectionWidth * 0.35) {
+    scrollX += sectionWidth;
+    instantMove(track);
+  }
+
+  if (scrollX > sectionWidth * 1.65) {
+    scrollX -= sectionWidth;
+    instantMove(track);
+  }
 }
 
-function snapLeft(track) {
-  return scrollX - getCardStep(track);
+function getCardInfo(viewport) {
+  const viewportRect = viewport.getBoundingClientRect();
+
+  return Array.from(viewport.querySelectorAll('.glassCard')).map((card) => {
+    const rect = card.getBoundingClientRect();
+
+    const visibleLeft = Math.max(rect.left, viewportRect.left);
+    const visibleRight = Math.min(rect.right, viewportRect.right);
+    const visibleWidth = Math.max(0, visibleRight - visibleLeft);
+
+    return {
+      card,
+      rect,
+      visibleWidth,
+      visibleRatio: rect.width > 0 ? visibleWidth / rect.width : 0,
+      viewportRect
+    };
+  });
+}
+
+function snapRight(track, viewport) {
+  normalizeBeforeSnap(track);
+
+  const sectionWidth = getSectionWidth(track);
+  const viewportRect = viewport.getBoundingClientRect();
+
+  let cards = getCardInfo(viewport);
+
+  let target = cards.find((x) => {
+    return x.rect.right > viewportRect.right &&
+      x.rect.left < viewportRect.right;
+  });
+
+  if (!target) {
+    target = cards.find((x) => {
+      return x.rect.left >= viewportRect.right;
+    });
+  }
+
+  if (!target) {
+    scrollX -= sectionWidth;
+    instantMove(track);
+    cards = getCardInfo(viewport);
+
+    target =
+      cards.find((x) => {
+        return x.rect.right > viewportRect.right &&
+          x.rect.left < viewportRect.right;
+      }) ||
+      cards.find((x) => {
+        return x.rect.left >= viewportRect.right;
+      });
+  }
+
+  if (!target) {
+    return scrollX;
+  }
+
+  return scrollX + (target.rect.left - viewportRect.left);
+}
+
+function snapLeft(track, viewport) {
+  normalizeBeforeSnap(track);
+
+  const sectionWidth = getSectionWidth(track);
+  const viewportRect = viewport.getBoundingClientRect();
+
+  let cards = getCardInfo(viewport);
+
+  let target = [...cards].reverse().find((x) => {
+    return x.rect.left < viewportRect.left &&
+      x.rect.right > viewportRect.left;
+  });
+
+  if (!target) {
+    target = [...cards].reverse().find((x) => {
+      return x.rect.right <= viewportRect.left;
+    });
+  }
+
+  if (!target) {
+    scrollX += sectionWidth;
+    instantMove(track);
+    cards = getCardInfo(viewport);
+
+    target =
+      [...cards].reverse().find((x) => {
+        return x.rect.left < viewportRect.left &&
+          x.rect.right > viewportRect.left;
+      }) ||
+      [...cards].reverse().find((x) => {
+        return x.rect.right <= viewportRect.left;
+      });
+  }
+
+  if (!target) {
+    return scrollX;
+  }
+
+  return scrollX - (viewportRect.right - target.rect.right);
 }
 
 function moveToPosition(nextX) {
@@ -190,11 +284,11 @@ function render() {
   });
 
   next.addEventListener('click', () => {
-    moveToPosition(snapRight(track));
+    moveToPosition(snapRight(track, viewport));
   });
 
   prev.addEventListener('click', () => {
-    moveToPosition(snapLeft(track));
+    moveToPosition(snapLeft(track, viewport));
   });
 
   requestAnimationFrame(() => {

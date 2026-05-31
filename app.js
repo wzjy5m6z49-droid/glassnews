@@ -56,7 +56,7 @@ function getSectionWidth(track) {
 }
 
 function applyTransform(track) {
-  track.style.transform = `translateX(${-scrollX}px)`;
+  track.style.transform = `translate3d(${-scrollX}px, 0, 0)`;
 }
 
 function instantMove(track) {
@@ -346,3 +346,4 @@ function startMarquee(track) {
 }
 
 render();
+

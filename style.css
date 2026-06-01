@@ -281,12 +281,12 @@ backdrop-filter: blur(24px) saturate(1.5);
 }
 
 .tagRow {
- display: flex;
- align-items: center;
- flex-wrap: wrap;
- gap: 10px;
- min-height: 18px;
- margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 16px;
+  margin-bottom: 6px;
 }
 
 .tag {
@@ -327,13 +327,12 @@ backdrop-filter: blur(24px) saturate(1.5);
 }
 
 .cardTitle {
- font-size: 16px;
- font-weight: 650;
- line-height: 1.45;
- letter-spacing: .01em;
- color: #1f1f1f;
-
- padding-bottom: 12px;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.38;
+  letter-spacing: .01em;
+  color: #1f1f1f;
+  padding-bottom: 20px;
 }
 
 .importantCard .cardTitle {

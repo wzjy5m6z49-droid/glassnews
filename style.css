@@ -308,6 +308,7 @@ backdrop-filter: blur(24px) saturate(1.5);
  margin-left: auto;
  color: #0078d4;
  font-weight: 650;
+ font-size: 13px;
 }
 
 .importantTag {

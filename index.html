@@ -11,23 +11,47 @@
   <div id="app"></div>
 
   <script>
-    const s = document.createElement('script');
-    s.src =
-      'https://digitalgojp.sharepoint.com/sites/NTA_IBHub12/SiteAssets/news/news-data.js?v='
+    const latest = document.createElement('script');
+
+    latest.src =
+      'https://digitalgojp.sharepoint.com/sites/NTA_IBHub12/SiteAssets/news/latest-news.js?v='
       + Date.now();
 
-    s.onload = () => {
-      const app = document.createElement('script');
-      app.src = './app.js?v=' + Date.now();
-      document.body.appendChild(app);
+    latest.onload = () => {
+
+      const data = document.createElement('script');
+
+      data.src =
+        'https://digitalgojp.sharepoint.com/sites/NTA_IBHub12/SiteAssets/news/'
+        + window.latestNewsFile
+        + '?v=' + Date.now();
+
+      data.onload = () => {
+
+        const app = document.createElement('script');
+
+        app.src =
+          './app.js?v=' + Date.now();
+
+        document.body.appendChild(app);
+
+      };
+
+      data.onerror = () => {
+        document.getElementById('app').textContent =
+          '表示不可';
+      };
+
+      document.body.appendChild(data);
+
     };
 
-    s.onerror = () => {
+    latest.onerror = () => {
       document.getElementById('app').textContent =
-        'news-data.js を読み込めませんでした';
+        '読み込めませんでした';
     };
 
-    document.body.appendChild(s);
+    document.body.appendChild(latest);
   </script>
 
 </body>

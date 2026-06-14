@@ -237,12 +237,15 @@ function render() {
 
               return `
                 <a
-                  class="glassCard ${important ? 'importantCard' : ''}"
-                  href="${escapeHtml(item.sourceUrl || '#')}"
-                  target="_top"
-                  style="animation-delay:${index * 0.05}s"
-                >
-                  <div class="tagRow">
+  class="glassCard ${important ? 'importantCard' : ''}"
+  href="${escapeHtml(item.sourceUrl || '#')}"
+  target="_top"
+  style="animation-delay:${index * 0.05}s"
+>
+
+  <div class="liquidLayer"></div>
+
+  <div class="tagRow">
                     <span class="tag deptTag">${escapeHtml(item.department || '未設定')}</span>
                     ${important ? '<span class="tag importantTag">重要</span>' : ''}
                     ${newItem ? '<span class="tag newTag">NEW</span>' : ''}

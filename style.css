@@ -117,7 +117,7 @@ body {
  width: 280px;
  min-width: 280px;
 
- min-height: 280px;
+ min-height: 80px;
 
  display: flex;
  flex-direction: column;
@@ -203,7 +203,7 @@ backdrop-filter: blur(24px) saturate(1.5);
 .importantCard {
  width: 280px;
  min-width: 280px;
- min-height: 280px;
+ min-height: 80px;
 
  border-color: rgba(255,140,150,.42);
  background: rgba(255,120,140,.10);

@@ -438,3 +438,36 @@ backdrop-filter: blur(24px) saturate(1.5);
  }
 }
 
+.liquidLayer {
+ position: absolute;
+ inset: 0;
+
+ z-index: 1;
+ pointer-events: none;
+
+ border-radius: inherit;
+
+ background:
+   radial-gradient(
+     circle at 22% 18%,
+     rgba(255,255,255,.65),
+     transparent 28%
+   ),
+   radial-gradient(
+     circle at 82% 84%,
+     rgba(120,210,255,.18),
+     transparent 34%
+   ),
+   rgba(255,255,255,.08);
+
+ filter: url("#liquidGlassFilter");
+
+ mix-blend-mode: screen;
+
+ opacity: .75;
+}
+
+.glassCard:hover .liquidLayer {
+ opacity: .95;
+}
+
